@@ -1,0 +1,32 @@
+.setcpu "6502"
+
+        ; "string in comment", 'X'
+
+        ; char
+        .byte   ';'     ; semicolon in char
+        .byte   '"'     ; double quote in char
+
+        ; string
+        .byte   "; foo ; bar ;"     ; semicolon in string
+
+.segment "ZP" : zeropage
+
+.segment "RAM" : absolute
+
+.segment "PRG"
+
+EXPR1 = (1 + 2) * 3 / 4 .mod 5
+EXPR2 = ~1 + <2 + >3 + ^4
+EXPR3 := (1 << 1) | ($F0 >> 2) & %00111000
+
+        .byte   $FF
+        .word   $1234
+        .dbyt   $1234
+
+Label:  lda     #$F8
+_Label:
+        sei
+
+        lda     $FF
+@loop:
+        jmp     @loop

@@ -1,0 +1,88 @@
+%YAML 1.2
+---
+file_extensions: [s65, inc65]
+scope: source.ca65
+
+variables:
+  number_dec: '(?:\b[0-9]+\b)'
+  number_hex: '(?i:\$[0-9a-f]+\b)'
+  number_bin: '(?:%[01]+\b)'
+  number: (?:{{number_dec}}|{{number_hex}}|{{number_bin}})
+
+  identifier: '(?i:\b[a-z_][a-z_0-9]*\b)'
+
+  operator_arithmetic: '(?:[-+*/]|\.(?i:mod))'
+  operator_bitwise: '(?:[~<>^&|]|<<|>>|\.(?i:bitnot|lobyte|hibyte|bankbyte|bitand|bitxor|shl|shr|bitor))'
+  operator_comparison: '(?:=|<>|<|<=|>|>=)'
+  operator_logical: '(?:&&|\|\||!|\.(?i:and|xor|or|not))'
+  operator_assign: '(?:=|:=)'
+  operator: '(?:{{operator_arithmetic}}|{{operator_bitwise}}|{{operator_comparison}}|{{operator_logical}})|{{operator_assign}}'
+
+  pseudo_variable: '(?:\.(?i:asize|cpu|isize|paramcount|time|version))'
+  pseudo_function: '(?:\.(?i:addrsize|bank|bankbyte|blank|concat|const|def|defined|definedmacro|hibyte|hiword|ident|ismnem|ismnemonic|left|lobyte|loword|match|max|mid|min|ref|referenced|right|sizeof|sprintf|strat|string|strlen|tcount|xmatch))'
+  control_command: '(?:\.(?i:a16|a8|addr|align|asciiz|assert|autoimport|bankbytes|bss|byte|byt|case|charmap|code|condes|constructor|data|dbyt|debuginfo|define|delmacro|delmac|destructor|dword|elseif|else|endenum|endif|endmacro|endmac|endproc|endrepeat|endrep|endscope|endstruct|endunion|end|enum|error|exitmacro|exitmac|exportzp|export|faraddr|fatal|feature|flieopt|fopt|forceimport|globalzp|global|hibytes|i16|i8|ifblank|ifconst|ifdef|ifnblank|ifndef|ifnref|ifp02|ifp4510|ifp816|ifpc02|ifpdtv|ifpsc02|ifref|if|importzp|import|incbin|include|interruptor|linecont|listbytes|list|literal|lobytes|localchar|local|macpack|macro|mac|org|out|p02|p4510|p816|pagelength|pagelen|pc02|pdtv|popcharmap|popcpu|popseg|proc|psc02|pushcharmap|pushcpu|pushseg|referto|refto|reloc|repeat|res|rodata|scope|segment|setcpu|set|smart|struct|tag|undefine|undef|union|warning|word|zeropage))'
+
+  keyword: '(?i:absolute|zeropage)'
+
+  special_op_6502: '(?i:bcc|bcs|beq|bmi|bne|bpl|brk|bvc|bvs|cli|jmp|jsr|pha|php|pla|plp|rti|rts|sei|tsx|txs)'
+  special_op_huc6280: '(?i:bbr0|bbr1|bbr2|bbr3|bbr4|bbr5|bbr6|bbr7|bbs0|bbs1|bbs2|bbs3|bbs4|bbs5|bbs6|bbs7|bra|bsr|phx|phy|plx|ply|set|tam|tma)'
+  special_op: '(?:{{special_op_6502}}|{{special_op_huc6280}})'
+
+contexts:
+  main:
+    # コメント。
+    - match: ';'
+      scope: punctuation.definition.comment.ca65
+      push: comment
+
+    # 数値リテラル。
+    - match: '{{number}}'
+      scope: constant.numeric.integer.ca65
+
+    # 文字リテラル。
+    # 現状 'foo' なども許してしまうが気にしない。
+    - match: "'"
+      scope: punctuation.definition.string.begin.ca65
+      push: char
+
+    # 文字列リテラル。
+    - match: '"'
+      scope: punctuation.definition.string.begin.ca65
+      push: string
+
+    # ラベル。
+    - match: '^\s*{{identifier}}:'
+      scope: entity.name.function.ca65
+
+    # 演算子。
+    - match: '{{operator}}'
+      scope: keyword.operator.ca65
+
+    # ディレクティブ (.hogehoge を全て一緒くたに扱う)。
+    - match: '(?:{{pseudo_variable}}|{{pseudo_function}}|{{control_command}})'
+      scope: keyword.ca65
+
+    # 予約語。
+    - match: '(?:{{keyword}})'
+      scope: keyword.ca65
+
+    # 強調表示する命令 (制御フローやスタックに影響するもの)。
+    - match: '(?:{{special_op}})'
+      scope: keyword.control.ca65
+
+  comment:
+    - meta_scope: comment.line.ca65
+    - match: '\n'
+      pop: true
+
+  char:
+    - meta_scope: string.quoted.single.ca65
+    - match: "'"
+      scope: punctuation.definition.string.end.ca65
+      pop: true
+
+  string:
+    - meta_scope: string.quoted.double.ca65
+    - match: '"'
+      scope: punctuation.definition.string.end.ca65
+      pop: true
