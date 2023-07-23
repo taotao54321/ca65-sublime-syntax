@@ -23,7 +23,7 @@ EXPR3 := (1 << 1) | ($F0 >> 2) & %00111000
         .word   $1234
         .dbyt   $1234
 
-Label:  lda     #$F8
+Reset:  lda     #$F8
 _Label:
         sei
 
